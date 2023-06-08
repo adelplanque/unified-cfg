@@ -1,0 +1,36 @@
+files:
+  global/config.ini: |
+    [group]
+    command = my_command
+    subcommands = item1 item2 item3
+    [other]
+    key = value
+    [empty]
+  templates/tmpl_single.txt: |
+    command: {{settings.config.group.command}}
+  templates/tmpl_dump.txt: |
+    {% for group in settings.config -%}
+    [{{group}}]
+    {% for option in settings.config[group] -%}
+    {{option}}={{settings.config[group][option]}}
+    {% endfor -%}
+    {% endfor -%}
+
+tests:
+  - command: >-
+      env CONFIG_PATH=${WORKDIR}/global
+      ${CFG} render ${WORKDIR}/templates/tmpl_single.txt
+    expected:
+      stdout: |
+        command: my_command
+  - command: >-
+      env CONFIG_PATH=${WORKDIR}/global
+      ${CFG} render ${WORKDIR}/templates/tmpl_dump.txt
+    expected:
+      stdout: |
+        [empty]
+        [group]
+        command=my_command
+        subcommands=item1 item2 item3
+        [other]
+        key=value

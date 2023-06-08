@@ -1,0 +1,20 @@
+files:
+  config.ini: |
+    [group]
+    key1 = value1
+
+    key2 = first line
+           second line
+  templates/tmpl.txt: |
+    {{settings.config.group.key1}}
+    {{settings.config.group.key2}}
+
+tests:
+  - command: >-
+      env CONFIG_PATH=${WORKDIR}
+      ${CFG} render ${WORKDIR}/templates/tmpl.txt
+    expected:
+      stdout: |
+        value1
+        first line
+        second line

@@ -1,0 +1,48 @@
+files:
+  global/config.ini: |
+    [groupa]
+    key1 = value1
+    key1[OPER] = value1 for oper
+    key2 = value2
+    key2[DEV] = value2 for DEV
+    key3 = multiline option
+           continue here
+  global/subdir/module.ini: |
+    [group]
+    key = value
+  local/config.ini: |
+    [groupa]
+    key1 = local value1
+
+tests:
+  - command: >-
+      env CONFIG_PATH=${WORKDIR}/local:${WORKDIR}/global
+      ${CFG} get config.groupa.key1
+    expected:
+      stdout: |
+        local value1
+  - command: >-
+      env CONFIG_PATH=${WORKDIR}/local:${WORKDIR}/global
+      ${CFG} --config-name OPER get config.groupa.key1
+    expected:
+      stdout: |
+        local value1
+  - command: >-
+      env CONFIG_PATH=${WORKDIR}/local:${WORKDIR}/global
+      ${CFG} --config-name DEV get config.groupa.key2
+    expected:
+      stdout: |
+        value2 for DEV
+  - command: >-
+      env CONFIG_PATH=${WORKDIR}/local:${WORKDIR}/global
+      ${CFG} --config-name DEV get subdir.module.group.key
+    expected:
+      stdout: |
+        value
+  - command: >-
+      env CONFIG_PATH=${WORKDIR}/local:${WORKDIR}/global
+      ${CFG} --config-name DEV get config.groupa.key3
+    expected:
+      stdout: |
+        multiline option
+        continue here

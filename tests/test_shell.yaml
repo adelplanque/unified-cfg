@@ -1,0 +1,27 @@
+files:
+  templates/tmpl_echo.txt: |
+    {{shell("echo toto")}}
+  templates/tmpl_fail.txt: |
+    {{shell("echo stderr message 1>&2 && false")}}
+  templates/tmpl_ignore_fail.txt: |
+    {{shell("echo stdout message && false", ignore_error=true)}}
+
+tests:
+  - command: >-
+      env CONFIG_PATH=${WORKDIR}/global
+      ${CFG} render ${WORKDIR}/templates/tmpl_echo.txt
+    expected:
+      stdout: |
+        toto
+  - command: >-
+      env CONFIG_PATH=${WORKDIR}/global
+      ${CFG} render ${WORKDIR}/templates/tmpl_fail.txt
+    expected:
+      stdout: |
+        {{shell error [1]: stderr message}}
+  - command: >-
+      env CONFIG_PATH=${WORKDIR}/global
+      ${CFG} render ${WORKDIR}/templates/tmpl_ignore_fail.txt
+    expected:
+      stdout: |
+        stdout message

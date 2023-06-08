@@ -1,0 +1,100 @@
+files:
+  global/config.ini: |
+    [groupa]
+    # This is a documentation for key1
+    key1 = value1
+    key1[OPER] = value1 for oper
+    # For developpement config we use another value.
+    key1[DEV] = value for dev
+    # This is another option
+    key2 = value2
+    key2[DEV] = value2 for DEV
+    # This comment is for groupb
+    [groupb]
+    # Comment for groupb.key
+    key = value
+    [groupc]
+  local/config.ini: |
+    [groupa]
+    # But local configuration use another value
+    key1 = local value1
+
+tests:
+  - command: >-
+      env CONFIG_PATH=${WORKDIR}/local:${WORKDIR}/global
+      ${CFG} doc config.groupa.key1
+    expected:
+      stdout: |
+        Option config.groupa.key1
+        .........................
+
+        This is a documentation for key1
+
+        For developpement config we use another value.
+
+        But local configuration use another value
+
+        * Defined in file {WORKDIR}/global/config.ini:
+          * key1 = value1
+          * key1[DEV] = value for dev
+          * key1[OPER] = value1 for oper
+
+        * Override in file {WORKDIR}/local/config.ini:
+          * key1 = local value1
+  - command: >-
+      env CONFIG_PATH=${WORKDIR}/local:${WORKDIR}/global
+      ${CFG} doc config.groupa
+    expected:
+      stdout: |
+        Group config.groupa
+        -------------------
+
+        Option config.groupa.key1
+        .........................
+
+        This is a documentation for key1
+
+        For developpement config we use another value.
+
+        But local configuration use another value
+
+        * Defined in file {WORKDIR}/global/config.ini:
+          * key1 = value1
+          * key1[DEV] = value for dev
+          * key1[OPER] = value1 for oper
+
+        * Override in file {WORKDIR}/local/config.ini:
+          * key1 = local value1
+
+        Option config.groupa.key2
+        .........................
+
+        This is another option
+
+        * Defined in file {WORKDIR}/global/config.ini:
+          * key2 = value2
+          * key2[DEV] = value2 for DEV
+  - command: >-
+      env CONFIG_PATH=${WORKDIR}/local:${WORKDIR}/global
+      ${CFG} doc config.groupb
+    expected:
+      stdout: |
+        Group config.groupb
+        -------------------
+
+        This comment is for groupb
+
+        Option config.groupb.key
+        ........................
+
+        Comment for groupb.key
+
+        * Defined in file {WORKDIR}/global/config.ini:
+          * key = value
+  - command: >-
+      env CONFIG_PATH=${WORKDIR}/local:${WORKDIR}/global
+      ${CFG} doc config.groupc
+    expected:
+      stdout: |
+        Group config.groupc
+        -------------------

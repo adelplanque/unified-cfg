@@ -1,0 +1,74 @@
+files:
+  global/config.ini: |
+    [group]
+    toks1 = item1 item2 item3
+    toks2 = item1;item2;item3
+    toks3 = item1-item2-item3
+  global/ip.ini: |
+    [google]
+    hostname = www.google.com
+    [localhost]
+    hostname = localhost
+    [multi]
+    hostnames = www.google.com,www.google.fr
+  templates/tmpl_split.txt: |
+    {% for tok in settings.config.group.toks1.split() -%}
+    tok1:{{tok}}
+    {% endfor -%}
+    {% for tok in settings.config.group.toks2.split(";") -%}
+    tok2:{{tok}}
+    {% endfor -%}
+    {% for tok in settings.config.group.toks3.split(delim="-") -%}
+    tok3:{{tok}}
+    {% endfor -%}
+  templates/tmpl_ip_google.txt: |
+    {{ settings.ip.google.hostname.ip() }}
+  templates/tmpl_ip_localhost.txt: |
+    {{ settings.ip.localhost.hostname }}: {{ settings.ip.localhost.hostname.ip() }}
+  templates/tmpl_split_ip.txt: |
+    {% for hostname in settings.ip.multi.hostnames.split(",") -%}
+    {{hostname}}: {{hostname.ip()}}
+    {% endfor -%}
+
+tests:
+  - command: >-
+      env CONFIG_PATH=${WORKDIR}/global
+      ${CFG} render ${WORKDIR}/templates/tmpl_split.txt
+    expected:
+      stdout: |
+        tok1:item1
+        tok1:item2
+        tok1:item3
+        tok2:item1
+        tok2:item2
+        tok2:item3
+        tok3:item1
+        tok3:item2
+        tok3:item3
+  - command: >-
+      env CONFIG_PATH=${WORKDIR}/global
+      ${CFG} render ${WORKDIR}/templates/tmpl_ip_google.txt
+    assert: |
+      ip = [int(x) for x in stdout.split(".")]
+      if len(ip) != 4:
+          raise AssertionError(f"IPv4 format error: {stdout.strip()}")
+      if any(x < 0 or x >= 256 for x in ip):
+          raise AssertionError(f"IPv4 format error: {stdout.strip()}")
+  - command: >-
+      env CONFIG_PATH=${WORKDIR}/global
+      ${CFG} render ${WORKDIR}/templates/tmpl_ip_localhost.txt
+    expected:
+      stdout: |
+        localhost: 127.0.0.1
+  - command: >-
+      env CONFIG_PATH=${WORKDIR}/global
+      ${CFG} render ${WORKDIR}/templates/tmpl_split_ip.txt
+    assert: |
+      res = [
+          (name, [int(x) for x in value.split(".")])
+          for name, value in (line.split(":") for line in stdout.splitlines())
+      ]
+      if len(res) != 2:
+          raise AssertionError(f"bad number of line")
+      if any(len(x[1]) != 4 for x in res):
+          raise AssertionError(f"bad format: {res}")

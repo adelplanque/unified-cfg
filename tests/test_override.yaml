@@ -1,0 +1,28 @@
+files:
+  config.ini: |
+    [main]
+    debug = 0
+    debug[DEV] = 1
+    debug[DEV_JHON] = 2
+
+tests:
+  - command: >-
+      ${CFG} -p ${WORKDIR} get config.main.debug
+    expected:
+      stdout: |
+        0
+  - command: >-
+      ${CFG} -p ${WORKDIR} -c DEV get config.main.debug
+    expected:
+      stdout: |
+        1
+  - command: >-
+      ${CFG} -p ${WORKDIR} -c DEV_JHON get config.main.debug
+    expected:
+      stdout: |
+        2
+  - command: >-
+      ${CFG} -p ${WORKDIR} -c DEV_PETER get config.main.debug
+    expected:
+      stdout: |
+        1

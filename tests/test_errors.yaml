@@ -1,0 +1,17 @@
+files:
+  global/config.ini: |
+    [main]
+    key1 = value1
+  templates/bad_template.txt: |
+    {{settings.config.main.key1}}
+    {% error %}
+
+tests:
+  - command: >-
+      env CONFIG_PATH=${WORKDIR}/global
+      ${CFG} render ${WORKDIR}/templates/bad_template.txt
+    expected:
+      stderr: |
+        Template error at {WORKDIR}/templates/bad_template.txt:2:4: error: Unexpected token: 'error'
+        {{% error %}}
+        ---^-------

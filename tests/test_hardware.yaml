@@ -1,0 +1,10 @@
+files:
+  config.ini: |
+    [group]
+    cores = {{hardware.cpu_cores()}}
+
+tests:
+  - command: env CONFIG_PATH=${WORKDIR} ${CFG} get config.group.cores
+    assert: |
+      if int(stdout) < 1:
+          raise AssertionError("Number of core should be positive")
