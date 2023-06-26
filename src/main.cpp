@@ -50,8 +50,11 @@ void doc_key(const std::string& key)
     node->doc(std::cout);
 }
 
-void append_config_path(const std::string& path) {
-    config_t::get_instance().push_front_config_path(path);
+void append_config_paths(const std::vector<std::string>& paths) {
+    for (const auto& path : paths) {
+        std::cerr << "path: " << path << std::endl;
+        config_t::get_instance().push_front_config_path(path);
+    }
 }
 
 
@@ -95,7 +98,8 @@ int main(int argc, char** argv)
     std::string key;
     std::string template_filename, result_filename;
 
-    app.add_option_function("--path", std::function<void(const std::string&)>(append_config_path),
+    app.add_option_function("--path",
+                            std::function<void(const std::vector<std::string>&)>(append_config_paths),
                             "Path to configuration files");
     app.add_option("--config-name", config.get_config_name(),
                    fmt::format("Configuration name (default: {})", config.get_config_name()));
