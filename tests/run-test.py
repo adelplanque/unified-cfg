@@ -28,7 +28,7 @@ class Tester():
         with tempfile.TemporaryDirectory() as workdir:
             for filename, content in self.data["files"].items():
                 filename = workdir / pathlib.Path(filename)
-                filename.parent.mkdir(exist_ok=True)
+                filename.parent.mkdir(exist_ok=True, parents=True)
                 filename.write_text(content)
             self.workdir = workdir
             status = [
@@ -50,9 +50,10 @@ class Tester():
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             env=env,
+            cwd=self.workdir
         )
-        stdout = p.stdout.decode("utf-8")
-        stderr = p.stderr.decode("utf-8")
+        stdout = p.stdout.decode("utf-8", errors="replace")
+        stderr = p.stderr.decode("utf-8", errors="replace")
         if p.returncode != 0:
             sys.stdout.write("*" * 80 + "\n")
             sys.stdout.write(f"FAIL: {p.returncode}")

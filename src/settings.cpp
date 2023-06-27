@@ -58,14 +58,14 @@ void settings_t::lazy_resolve::operator()(const lazy_directory_t& original_conte
         }
         for (const auto& entry : std::filesystem::directory_iterator(fullpath)) {
             if (entry.is_directory()) {
-                const auto& dir_name = entry.path().filename().native();
-                if (dir_name.find(".") == std::string::npos) {
-                    directories.insert(std::move(dir_name));
+                std::string name = entry.path().filename().native();
+                if (name.find(".") == std::string::npos) {
+                    directories.insert(std::move(name));
                 }
             } else if (entry.is_regular_file() && entry.path().extension() == ".ini") {
-                const auto& filename = entry.path().stem().native();
-                if (filename.find(".") == std::string::npos) {
-                    files.insert(std::move(filename));
+                std::string name = entry.path().stem().native();
+                if (name.find(".") == std::string::npos) {
+                    files.insert(std::move(name));
                 }
             }
         }
