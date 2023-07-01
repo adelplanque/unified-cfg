@@ -107,7 +107,12 @@ int main(int argc, char** argv)
     auto get_subcommand = app.add_subcommand("get", "Get config key");
     get_subcommand->add_option("key", key, "Required key");
     get_subcommand->final_callback([&key]() {
-        std::cout << get_key(key) << std::endl;
+        try {
+            std::cout << get_key(key) << std::endl;
+        }
+        catch (std::out_of_range& e) {
+            std::cerr << "ERROR: " << e.what() << std::endl;
+        }
     });
 
     auto render_subcommand = app.add_subcommand("render", "Render template file");

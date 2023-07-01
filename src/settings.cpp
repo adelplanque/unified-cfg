@@ -175,7 +175,14 @@ std::string settings_t::full_name()
 }
 
 std::out_of_range settings_t::out_of_range(const std::string& key) {
-    return std::out_of_range(fmt::format("Key {} undefined in .{}", key, full_name()));
+    auto name = full_name();
+    std::string msg;
+    if (full_name().empty()) {
+        msg = fmt::format("Key `{}` undefined", key);
+    } else {
+        msg = fmt::format("Key `{}` undefined in `{}`", key, full_name());
+    }
+    return std::out_of_range(msg);
 }
 
 std::filesystem::path settings_t::get_path()
