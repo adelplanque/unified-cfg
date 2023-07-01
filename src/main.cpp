@@ -33,7 +33,7 @@ std::string get_key(const std::string key)
     settings_t::ptr settings(new settings_t());
     settings_t::ptr node = settings;
     std::vector<std::string> toks {};
-    for (const auto tok: boost::split(toks, key, boost::is_any_of("."))) {
+    for (const auto& tok: boost::split(toks, key, boost::is_any_of("."))) {
         node = node->at(tok);
     }
     return node->as<std::string>();
@@ -44,7 +44,7 @@ void doc_key(const std::string& key)
     settings_t::ptr settings(new settings_t());
     settings_t::ptr node = settings;
     std::vector<std::string> toks {};
-    for (const auto tok: boost::split(toks, key, boost::is_any_of("."))) {
+    for (const auto& tok: boost::split(toks, key, boost::is_any_of("."))) {
         node = node->at(tok);
     }
     node->doc(std::cout);
