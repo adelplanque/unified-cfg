@@ -136,18 +136,18 @@ std::string shell(const std::string& script, bool ignore_error=false)
 Renderer::Renderer(settings_t::ptr settings, bool recursive)
     : recursive(recursive)
 {
-    values = jinja2::ValuesMap ({
-                {"env", jinja2::Reflect(environnement_t())},
-                {"settings", jinja2::GenericMap([accessor = jinja2::detail::SettingsMapAccessor(settings, *this)]()
-                {
-                    return &accessor;
-                })},
-                {"shell", jinja2::MakeCallable(shell,
-                                               jinja2::ArgInfo("script", true),
-                                               jinja2::ArgInfo("ignore_error", false, false))},
-                {"hardware", jinja2::ValuesMap({
-                            {"cpu_cores", jinja2::MakeCallable(cpu_cores)},
-                        })},
+    values = jinja2::ValuesMap({
+            {"env", jinja2::Reflect(environnement_t())},
+            {"settings", jinja2::GenericMap([accessor = jinja2::detail::SettingsMapAccessor(settings, *this)]() {
+                return &accessor;
+            })},
+            {"shell", jinja2::MakeCallable(shell,
+                                           jinja2::ArgInfo("script", true),
+                                           jinja2::ArgInfo("ignore_error", false, false))},
+            {"hardware", jinja2::ValuesMap({
+                        {"cpu_cores", jinja2::MakeCallable(cpu_cores)},
+                        {"meminfo", jinja2::MakeCallable(meminfo, jinja2::ArgInfo("key", true))},
+                    })},
         });
 }
 

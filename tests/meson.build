@@ -3,15 +3,16 @@ py3_exe = import('python').find_installation()
 test_env = ['CFG=' + cfg.full_path()]
 
 testcases = [
+  'test_cpu_cores.yaml',
   'test_doc.yaml',
   'test_env.yaml',
   'test_get.yaml',
   'test_get2.yaml',
   'test_get_errors.yaml',
-  'test_hardware.yaml',
   'test_list.yaml',
   'test_list_empty.yaml',
   'test_list_tabulate.yaml',
+  'test_meminfo.yaml',
   'test_multilines.yaml',
   'test_recursive.yaml',
   'test_render.yaml',

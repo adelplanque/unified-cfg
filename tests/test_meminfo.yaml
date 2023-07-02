@@ -1,0 +1,21 @@
+files:
+  config.ini: |
+    [group]
+    total = {{ hardware.meminfo("MemTotal") }}
+    memory = {{ [ [ (hardware.meminfo("MemTotal") / 6) | int, 6291456 ] | min, 1048576 ] | max }}
+
+tests:
+  - command: env CONFIG_PATH=${WORKDIR} ${CFG} get config.group.total
+    expected:
+      callback: |
+        import pathlib
+        meminfo = {
+            k: int(v.strip().split()[0])
+            for k, v in (line.split(":") for line in pathlib.Path("/proc/meminfo").open())
+        }
+        assert int(stdout) == meminfo["MemTotal"]
+  - command: env CONFIG_PATH=${WORKDIR} ${CFG} get config.group.memory
+    expected:
+      callback: |
+        value = int(stdout)
+        assert  value >= 1048576 and value <= 6291456

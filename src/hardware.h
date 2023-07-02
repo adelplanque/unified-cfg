@@ -27,6 +27,14 @@ CFG_BEGIN_NAMESPACE
  */
 int cpu_cores();
 
+/**
+ * Return value from /proc/meminfo
+ *
+ * @param key Value from /proc/meminfo to be retreive
+ * @return Number of cpu cores
+ */
+long int meminfo(const std::string& key);
+
 CFG_END_NAMESPACE
 
 #endif

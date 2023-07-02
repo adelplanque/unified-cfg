@@ -37,4 +37,16 @@ int cpu_cores()
     return -1;
 }
 
+long int meminfo(const std::string& key)
+{
+    std::ifstream is {"/proc/meminfo"};
+    std::string str;
+    while (getline(is, str)) {
+        if (str.rfind(key, 0) == 0 && str[key.size()] == ':') {
+            return std::atol(str.c_str() + key.size() + 1);
+        }
+    }
+    return -1;
+}
+
 CFG_END_NAMESPACE
