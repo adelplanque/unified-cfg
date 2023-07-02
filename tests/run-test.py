@@ -52,33 +52,40 @@ class Tester():
             env=env,
             cwd=self.workdir
         )
-        stdout = p.stdout.decode("utf-8", errors="replace")
-        stderr = p.stderr.decode("utf-8", errors="replace")
-        if p.returncode != 0:
+        p.stdout = p.stdout.decode("utf-8", errors="replace")
+        p.stderr = p.stderr.decode("utf-8", errors="replace")
+        if p.returncode != testcase["expected"].get("returncode", 0):
             sys.stdout.write("*" * 80 + "\n")
             sys.stdout.write(f"FAIL: {p.returncode}")
-            sys.stdout.write(stderr)
+            sys.stdout.write(p.stderr)
             sys.stdout.write("*" * 80 + "\n")
-        if "assert" in testcase:
-            try:
-                cb = self.assertion_fct(testcase["assert"])
-            except Exception as e:
-                sys.stdout.write(f"ERROR: {e.__class__.__name__}: {e}\n")
-                return False
-            status = cb(testcase, stdout, stderr)
-        else:
-            status = [
-                self.assertion_diff(testcase["expected"][name], result)
-                for name, result in (("stdout", stdout), ("stderr", stderr))
-                if name in testcase["expected"]
-            ]
-            if not status:
-                sys.stdout.write("No expected provided\n")
-            status = status and all(status)
-        sys.stdout.write("\n")
-        return status
+        if not testcase.get("expected"):
+            sys.stdout.write("No expected provided\n")
+        return all(
+            getattr(self, f"check_{name}")(p, value)
+            for name, value in testcase["expected"].items()
+        )
 
-    def assertion_diff(self, expect, result):
+    def check_callback(self, p, value):
+        try:
+            cb = self.build_callback(value)
+        except Exception as e:
+            sys.stdout.write(f"ERROR: {e.__class__.__name__}: {e}\n")
+            return False
+        return cb(p.stdout, p.stderr)
+
+    def check_stdout(self, p, value):
+        return self._check_text(value, p.stdout)
+
+    def check_stderr(self, p, value):
+        return self._check_text(value, p.stderr)
+
+    def check_returncode(self, p, value):
+        if p.returncode != value:
+            sys.stdout.write(f"FAIL: expect returncode {value}, get {p.returncode}")
+        return p.returncode == value
+
+    def _check_text(self, expect, result):
         expect = expect.format(WORKDIR=self.workdir)
         if result == expect:
             return True
@@ -90,10 +97,10 @@ class Tester():
         sys.stdout.writelines(diff)
         return False
 
-    def assertion_fct(self, script):
+    def build_callback(self, script):
         fct_name = f"cb_{uuid.uuid4().hex}"
         fct = (
-            "def %s(testcase, stdout, stderr):\n"
+            "def %s(stdout, stderr):\n"
             "    try:\n"
             "%s\n"
             "    except Exception as e:\n"

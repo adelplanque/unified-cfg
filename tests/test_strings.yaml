@@ -48,12 +48,13 @@ tests:
   - command: >-
       env CONFIG_PATH=${WORKDIR}/global
       ${CFG} render ${WORKDIR}/templates/tmpl_ip_google.txt
-    assert: |
-      ip = [int(x) for x in stdout.split(".")]
-      if len(ip) != 4:
-          raise AssertionError(f"IPv4 format error: {stdout.strip()}")
-      if any(x < 0 or x >= 256 for x in ip):
-          raise AssertionError(f"IPv4 format error: {stdout.strip()}")
+    expected:
+      callback: |
+        ip = [int(x) for x in stdout.split(".")]
+        if len(ip) != 4:
+            raise AssertionError(f"IPv4 format error: {stdout.strip()}")
+        if any(x < 0 or x >= 256 for x in ip):
+            raise AssertionError(f"IPv4 format error: {stdout.strip()}")
   - command: >-
       env CONFIG_PATH=${WORKDIR}/global
       ${CFG} render ${WORKDIR}/templates/tmpl_ip_localhost.txt
@@ -63,12 +64,13 @@ tests:
   - command: >-
       env CONFIG_PATH=${WORKDIR}/global
       ${CFG} render ${WORKDIR}/templates/tmpl_split_ip.txt
-    assert: |
-      res = [
-          (name, [int(x) for x in value.split(".")])
-          for name, value in (line.split(":") for line in stdout.splitlines())
-      ]
-      if len(res) != 2:
-          raise AssertionError(f"bad number of line")
-      if any(len(x[1]) != 4 for x in res):
-          raise AssertionError(f"bad format: {res}")
+    expected:
+      callback: |
+        res = [
+            (name, [int(x) for x in value.split(".")])
+            for name, value in (line.split(":") for line in stdout.splitlines())
+        ]
+        if len(res) != 2:
+            raise AssertionError(f"bad number of line")
+        if any(len(x[1]) != 4 for x in res):
+            raise AssertionError(f"bad format: {res}")

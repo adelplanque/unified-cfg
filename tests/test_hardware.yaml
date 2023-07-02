@@ -5,6 +5,7 @@ files:
 
 tests:
   - command: env CONFIG_PATH=${WORKDIR} ${CFG} get config.group.cores
-    assert: |
-      if int(stdout) < 1:
-          raise AssertionError("Number of core should be positive")
+    expected:
+      callback: |
+        if int(stdout) < 1:
+            raise AssertionError("Number of core should be positive")

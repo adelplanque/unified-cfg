@@ -1,0 +1,18 @@
+files:
+  config.ini: |
+    [main]
+    key1 = value1
+
+tests:
+  - command: >-
+      env CONFIG_PATH=${WORKDIR} ${CFG} get badkey
+    expected:
+      stderr: |
+        ERROR: Key `badkey` undefined
+      returncode: 1
+  - command: >-
+      env CONFIG_PATH=${WORKDIR} ${CFG} get config.main.badkey
+    expected:
+      stderr: |
+        ERROR: Key `badkey` undefined in `config.main`
+      returncode: 1

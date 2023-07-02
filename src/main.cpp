@@ -90,6 +90,15 @@ void render_callback(const std::string& input, const std::string& output)
 }
 
 
+void list_callback() {
+    settings_t::ptr settings(new settings_t());
+    for (settings_t::recursive_iterator it = settings->rec_begin();
+         it != settings->rec_end(); ++it) {
+        std::cout << it->full_name() << ": " << it->as<std::string>() << std::endl;
+    }
+}
+
+
 int main(int argc, char** argv)
 {
     auto& config = config_t::get_instance();
@@ -111,7 +120,7 @@ int main(int argc, char** argv)
             std::cout << get_key(key) << std::endl;
         }
         catch (std::out_of_range& e) {
-            std::cerr << "ERROR: " << e.what() << std::endl;
+            throw std::runtime_error(e.what());
         }
     });
 
@@ -126,6 +135,16 @@ int main(int argc, char** argv)
     help_subcommand->add_option("key", key, "Required key");
     help_subcommand->final_callback([&key]() { doc_key(key); });
 
-    CLI11_PARSE(app, argc, argv);
+    auto list_subcommand = app.add_subcommand("list", "List keys/values");
+    list_subcommand->final_callback(list_callback);
+
+    try {
+        CLI11_PARSE(app, argc, argv);
+    }
+    catch (std::runtime_error& e) {
+        std::cerr << "ERROR: " << e.what() << std::endl;
+        return 1;
+    }
+
     return 0;
 }
