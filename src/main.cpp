@@ -92,7 +92,7 @@ void render_callback(const std::string& input, const std::string& output)
 
 void list_callback() {
     settings_t::ptr settings(new settings_t());
-    for (settings_t::recursive_iterator it = settings->rec_begin();
+    for (settings_t::rec_iterator it = settings->rec_begin();
          it != settings->rec_end(); ++it) {
         std::cout << it->full_name() << ": " << it->as<std::string>() << std::endl;
     }

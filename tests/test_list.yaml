@@ -1,0 +1,22 @@
+files:
+  config.ini: |
+    [groupa]
+    key1 = value1
+    key2 = value2
+    [groupb]
+    key = value
+    [groupc]
+  subdir/config.ini: |
+    [groupa]
+    key1 = local value1
+  empty.ini: ""
+
+tests:
+  - command: >-
+      env CONFIG_PATH=${WORKDIR} ${CFG} list
+    expected:
+      stdout: |
+        config.groupa.key1: value1
+        config.groupa.key2: value2
+        config.groupb.key: value
+        subdir.config.groupa.key1: local value1

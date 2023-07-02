@@ -1,0 +1,7 @@
+files: {}
+
+tests:
+  - command: >-
+      env CONFIG_PATH=${WORKDIR} ${CFG} list
+    expected:
+      stdout: ""

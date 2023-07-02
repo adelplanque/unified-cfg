@@ -116,6 +116,67 @@ public:
         bool operator()(const lazy_file_t&) { return false; };
     };
 
+    /** Depth-first search iterator */
+    struct rec_iterator
+    {
+        using iterator_category = std::forward_iterator_tag;
+        using value_type        = settings_t;
+        using pointer           = settings_t::ptr;
+        using reference         = settings_t&;
+
+        rec_iterator() {};
+
+        rec_iterator(settings_t::ptr settings) { deep_search(settings); }
+
+        reference operator*() { return *(*its.top()).second; }
+
+        pointer operator->() { return (*its.top()).second; }
+
+        rec_iterator& operator++() {
+            while (! its.empty() && ++its.top() == ends.top()) pop();
+            if (! its.empty()) deep_search((*its.top()).second);
+            return *this;
+        }
+
+        friend bool operator==(const rec_iterator& a, const rec_iterator& b) {
+            return a.its == b.its;
+        }
+
+        friend bool operator!=(const rec_iterator& a, const rec_iterator& b) {
+            return a.its != b.its;
+        }
+
+    private:
+
+        void deep_search(settings_t::ptr settings) {
+            settings_t::ptr node = settings;
+            while (true) {
+                node->ensure_not_lazy();
+                if (! std::holds_alternative<mapping_t>(node->content_)) break;
+                auto& mapping = std::get<mapping_t>(node->content_);
+                if (mapping.empty()) {
+                    while (! its.empty() && ++its.top() == ends.top()) pop();
+                    if (its.empty()) return;
+                } else {
+                    push(mapping);
+                }
+                node = (*its.top()).second;
+            }
+        }
+
+        void pop() {
+            its.pop();
+            ends.pop();
+        }
+
+        void push(mapping_t& mapping) {
+            its.push(mapping.begin());
+            ends.push(mapping.end());
+        }
+
+        std::stack<mapping_t::iterator> its, ends;
+    };
+
 public:
     settings_t()
         : parent_(nullptr)
@@ -195,6 +256,9 @@ public:
             return std::nullopt;
         }
     }
+
+    rec_iterator rec_begin() { return rec_iterator(this->shared_from_this()); }
+    rec_iterator rec_end() { return rec_iterator(); }
 
 private:
 
