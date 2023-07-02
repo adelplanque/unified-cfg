@@ -40,4 +40,4 @@ subdir('include')
 subdir('src')
 subdir('tests')
 
-meson.add_dist_script('scripts/dist.sh')
+meson.add_dist_script('scripts/dist.py')
