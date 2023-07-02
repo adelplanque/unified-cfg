@@ -82,3 +82,11 @@ libsubprocess_dep = declare_dependency(
   link_with: libsubprocess,
   include_directories: ['subprocess/src/cpp']
 )
+
+libcli11_dep = declare_dependency(
+  include_directories: ['CLI11/include']
+)
+
+libtabulate_dep = declare_dependency(
+  include_directories: ['tabulate/include']
+)
