@@ -10,3 +10,6 @@
 [submodule "ext/subprocess"]
 	path = ext/subprocess
 	url = https://github.com/benman64/subprocess.git
+[submodule "ext/tabulate"]
+	path = ext/tabulate
+	url = https://github.com/p-ranav/tabulate.git

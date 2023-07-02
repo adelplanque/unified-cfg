@@ -11,6 +11,7 @@ testcases = [
   'test_hardware.yaml',
   'test_list.yaml',
   'test_list_empty.yaml',
+  'test_list_tabulate.yaml',
   'test_multilines.yaml',
   'test_recursive.yaml',
   'test_render.yaml',

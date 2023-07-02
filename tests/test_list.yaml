@@ -20,3 +20,8 @@ tests:
         config.groupa.key2: value2
         config.groupb.key: value
         subdir.config.groupa.key1: local value1
+  - command: >-
+      env CONFIG_PATH=${WORKDIR} ${CFG} list subdir
+    expected:
+      stdout: |
+        subdir.config.groupa.key1: local value1

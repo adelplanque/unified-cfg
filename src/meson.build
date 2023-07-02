@@ -26,7 +26,7 @@ cfg = executable(
   'cfg',
   'main.cpp',
   dependencies: [libcfg_dep, libfmt_dep, boost_dep],
-  include_directories: ['../include', '../ext/CLI11/include'],
+  include_directories: ['../include', '../ext/CLI11/include', '../ext/tabulate/include'],
   link_args: cxx.get_supported_link_arguments('-fvisibility=hidden'),
   install: true
 )

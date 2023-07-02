@@ -16,11 +16,14 @@
 
 #include <exception>
 #include <fstream>
+#include <sys/ioctl.h> //ioctl() and TIOCGWINSZ
+#include <unistd.h> // for STDOUT_FILENO
 
 #include <boost/algorithm/string.hpp>
 
 #include <CLI/CLI.hpp>
 #include <fmt/format.h>
+#include <tabulate/table.hpp>
 
 #include "settings.h"
 #include "config.h"
@@ -28,26 +31,26 @@
 
 using namespace cfg;
 
-std::string get_key(const std::string key)
+settings_t::ptr get_settings(const std::string& key)
 {
-    settings_t::ptr settings(new settings_t());
-    settings_t::ptr node = settings;
-    std::vector<std::string> toks {};
-    for (const auto& tok: boost::split(toks, key, boost::is_any_of("."))) {
-        node = node->at(tok);
+    settings_t::ptr node(new settings_t());
+    if (! key.empty()) {
+        std::vector<std::string> toks {};
+        for (const auto& tok: boost::split(toks, key, boost::is_any_of("."))) {
+            node = node->at(tok);
+        }
     }
-    return node->as<std::string>();
+    return node;
+}
+
+std::string get_key(const std::string& key)
+{
+    return get_settings(key)->as<std::string>();
 }
 
 void doc_key(const std::string& key)
 {
-    settings_t::ptr settings(new settings_t());
-    settings_t::ptr node = settings;
-    std::vector<std::string> toks {};
-    for (const auto& tok: boost::split(toks, key, boost::is_any_of("."))) {
-        node = node->at(tok);
-    }
-    node->doc(std::cout);
+    get_settings(key)->doc(std::cout);
 }
 
 void append_config_paths(const std::vector<std::string>& paths) {
@@ -90,11 +93,62 @@ void render_callback(const std::string& input, const std::string& output)
 }
 
 
-void list_callback() {
-    settings_t::ptr settings(new settings_t());
-    for (settings_t::rec_iterator it = settings->rec_begin();
-         it != settings->rec_end(); ++it) {
-        std::cout << it->full_name() << ": " << it->as<std::string>() << std::endl;
+size_t wraps_key(std::string& key, size_t max)
+{
+    std::vector<std::string> toks;
+    boost::split(toks, key, boost::is_any_of("."));
+    std::string result = toks[0];
+    size_t current = result.size();
+    size_t total = 0;
+    for (auto tok = ++toks.begin(); tok != toks.end(); ++tok) {
+        if (current + tok->size() + 1 > max) {
+            result += "\n";
+            current = 0;
+        }
+        result += "." + *tok;
+        current += tok->size() + 1;
+        total = std::max(total, current);
+    }
+    std::swap(key, result);
+    return total + 2;
+}
+
+
+void list_callback(const std::string& key, bool tabulate, std::optional<size_t> requested_width) {
+    auto node = get_settings(key);
+    if (tabulate) {
+        size_t width;
+        if (requested_width.has_value()) {
+            width = requested_width.value();
+        } else if (isatty(STDOUT_FILENO)) {
+            struct winsize size;
+            ioctl(STDOUT_FILENO, TIOCGWINSZ, &size);
+            width = size.ws_col;
+        } else {
+            width = 80;
+        }
+        size_t key_width = 0;
+        tabulate::Table table;
+        table.format().multi_byte_characters(true);
+        table.add_row({"Key", "Value"});
+        table[0].format().font_style({tabulate::FontStyle::bold});
+        for (settings_t::rec_iterator it = node->rec_begin();
+             it != node->rec_end(); ++it) {
+            std::string key = it->full_name();
+            key_width = std::max(key_width, wraps_key(key, 40));
+            table.add_row({key, it->as<std::string>()});
+        }
+        size_t value_width = std::max(width - key_width - 3, (size_t) 20);
+        for (auto& row : table) {
+            row[0].format().width(key_width);
+            row[1].format().width(value_width);
+        }
+        std::cout << table << std::endl;
+    } else {
+        for (settings_t::rec_iterator it = node->rec_begin();
+             it != node->rec_end(); ++it) {
+            std::cout << it->full_name() << ": " << it->as<std::string>() << std::endl;
+        }
     }
 }
 
@@ -116,12 +170,7 @@ int main(int argc, char** argv)
     auto get_subcommand = app.add_subcommand("get", "Get config key");
     get_subcommand->add_option("key", key, "Required key");
     get_subcommand->final_callback([&key]() {
-        try {
-            std::cout << get_key(key) << std::endl;
-        }
-        catch (std::out_of_range& e) {
-            throw std::runtime_error(e.what());
-        }
+        std::cout << get_key(key) << std::endl;
     });
 
     auto render_subcommand = app.add_subcommand("render", "Render template file");
@@ -135,13 +184,26 @@ int main(int argc, char** argv)
     help_subcommand->add_option("key", key, "Required key");
     help_subcommand->final_callback([&key]() { doc_key(key); });
 
-    auto list_subcommand = app.add_subcommand("list", "List keys/values");
-    list_subcommand->final_callback(list_callback);
+    bool tabulate = false;
+    std::optional<size_t> width = std::nullopt;
+
+    auto list_subcommand =
+        app.add_subcommand("list", "List of configuration keys with their values.");
+    auto tabulate_flag =
+        list_subcommand->add_flag("--tabulate", tabulate, "Display results in tabular form");
+    list_subcommand->add_option("--width", width, "Table width")->needs(tabulate_flag);
+    list_subcommand->add_option("key", key, "Filter keys starting with this prefix")->required(false);
+    list_subcommand->final_callback([&tabulate, &key, &width]() {
+        list_callback(key, tabulate, width);
+    });
 
     try {
-        CLI11_PARSE(app, argc, argv);
+        app.parse(argc, argv);
     }
-    catch (std::runtime_error& e) {
+    catch (const CLI::ParseError &e) {
+        return app.exit(e);
+    }
+    catch (std::exception& e) {
         std::cerr << "ERROR: " << e.what() << std::endl;
         return 1;
     }

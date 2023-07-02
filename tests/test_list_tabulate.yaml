@@ -1,0 +1,30 @@
+files:
+  config.ini: |
+    [groupa]
+    key1 = value1
+    key2 = value2
+    [groupb]
+    key = value
+    [groupc]
+  very/long/key/path/with/multiples/subdirs/config.ini: |
+    [groupa]
+    long_key_name = local value1
+  empty.ini: ""
+
+tests:
+  - command: >-
+      env CONFIG_PATH=${WORKDIR} ${CFG} list --tabulate
+    expected:
+      stdout: |
+        +--------------------------------------+---------------------------------------+
+        | Key                                  | Value                                 |
+        +--------------------------------------+---------------------------------------+
+        | config.groupa.key1                   | value1                                |
+        +--------------------------------------+---------------------------------------+
+        | config.groupa.key2                   | value2                                |
+        +--------------------------------------+---------------------------------------+
+        | config.groupb.key                    | value                                 |
+        +--------------------------------------+---------------------------------------+
+        | very.long.key.path.with.multiples    | local value1                          |
+        | .subdirs.config.groupa.long_key_name |                                       |
+        +--------------------------------------+---------------------------------------+
