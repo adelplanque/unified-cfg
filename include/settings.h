@@ -178,16 +178,14 @@ public:
     };
 
 public:
-    settings_t()
-        : parent_(nullptr)
-        , content_(lazy_directory_t{"."})
-    {};
+    settings_t() : content_(lazy_directory_t{"."}) {};
     template<typename T>
     settings_t(const std::string& name, T&& content, ptr parent=nullptr)
         : name_(name)
-        , parent_(parent)
         , content_(std::move(content))
-    {};
+    {
+        if (parent) parent_ = parent;
+    };
 
     ptr at(const std::string& key);
     void append(const std::string& key, ptr& settings);
@@ -233,7 +231,7 @@ public:
     std::filesystem::path get_path();
     ptr get_root()
     {
-        return (this->parent_ == nullptr) ? shared_from_this() : this->parent_->get_root();
+        return (this->parent_.expired()) ? shared_from_this() : ptr(this->parent_)->get_root();
     }
     void set_comments(comments_t&& comments) { this->comments = std::move(comments); }
 
@@ -266,7 +264,7 @@ private:
     void ensure_not_lazy();
 
     std::string name_;
-    ptr parent_;
+    std::weak_ptr<settings_t> parent_;
     content_t content_;
     comments_t comments;
 };

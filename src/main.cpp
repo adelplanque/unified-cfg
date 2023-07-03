@@ -31,9 +31,9 @@
 
 using namespace cfg;
 
-settings_t::ptr get_settings(const std::string& key)
+settings_t::ptr get_node(const settings_t::ptr& settings, const std::string& key)
 {
-    settings_t::ptr node(new settings_t());
+    settings_t::ptr node = settings;
     if (! key.empty()) {
         std::vector<std::string> toks {};
         for (const auto& tok: boost::split(toks, key, boost::is_any_of("."))) {
@@ -45,12 +45,14 @@ settings_t::ptr get_settings(const std::string& key)
 
 std::string get_key(const std::string& key)
 {
-    return get_settings(key)->as<std::string>();
+    settings_t::ptr settings(new settings_t());
+    return get_node(settings, key)->as<std::string>();
 }
 
 void doc_key(const std::string& key)
 {
-    get_settings(key)->doc(std::cout);
+    settings_t::ptr settings(new settings_t());
+    get_node(settings, key)->doc(std::cout);
 }
 
 void append_config_paths(const std::vector<std::string>& paths) {
@@ -114,8 +116,10 @@ size_t wraps_key(std::string& key, size_t max)
 }
 
 
-void list_callback(const std::string& key, bool tabulate, std::optional<size_t> requested_width) {
-    auto node = get_settings(key);
+void list_callback(const std::string& key, bool tabulate, std::optional<size_t> requested_width)
+{
+    settings_t::ptr settings(new settings_t());
+    auto node = get_node(settings, key);
     if (tabulate) {
         size_t width;
         if (requested_width.has_value()) {

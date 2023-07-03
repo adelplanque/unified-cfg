@@ -166,7 +166,7 @@ size_t settings_t::size()
 
 std::string settings_t::full_name()
 {
-    std::string result = (parent_ == nullptr) ? "" : parent_->full_name();
+    std::string result = (parent_.expired()) ? "" : ptr(parent_)->full_name();
     if (! result.empty()) {
         result.append(".");
     }
@@ -188,7 +188,7 @@ std::out_of_range settings_t::out_of_range(const std::string& key) {
 std::filesystem::path settings_t::get_path()
 {
     std::filesystem::path p =
-        (parent_ == nullptr) ? std::filesystem::path() : parent_->get_path();
+        (parent_.expired()) ? std::filesystem::path() : ptr(parent_)->get_path();
     if (! name_.empty()) {
         p /= name_;
     }
