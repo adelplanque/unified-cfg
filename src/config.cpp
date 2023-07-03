@@ -26,8 +26,8 @@
 
 CFG_BEGIN_NAMESPACE
 
-config_t* config_t::instance = nullptr;
 
+config_t config_t::instance{};
 
 std::string env_to_string(const char* name)
 {

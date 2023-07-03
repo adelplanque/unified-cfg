@@ -32,13 +32,7 @@ class config_t {
 public:
 
     /** Get instance of configuration */
-    static config_t& get_instance()
-    {
-        if (config_t::instance == nullptr) {
-            config_t::instance = new config_t();
-        }
-        return *config_t::instance;
-    }
+    static config_t& get_instance() { return instance; }
 
     /**
      * Get config path locations.
@@ -66,8 +60,9 @@ private:
     config_t();
     config_t(const config_t&) = delete;
     config_t(const config_t&&) = delete;
+    config_t& operator=(const config_t&) = delete;
     /** Single instance of the configuration */
-    static config_t* instance;
+    static config_t instance;
     /** List of paths where configuration files are located. Highest priority first. */
     std::list<std::filesystem::path> config_path;
     /** Current configuration name */
