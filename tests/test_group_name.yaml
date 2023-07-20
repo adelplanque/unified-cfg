@@ -1,0 +1,20 @@
+files:
+  config.ini: |
+    [0]
+    key1 = value1
+    [one@group]
+    key2 = value2
+  illegal.ini: |
+    []
+
+tests:
+  - command: >-
+      env CONFIG_PATH=${WORKDIR} ${CFG} list config
+    expected:
+      stdout: |
+        config.0.key1: value1
+        config.one@group.key2: value2
+  - command: >-
+      env CONFIG_PATH=${WORKDIR} ${CFG} list illegal
+    expected:
+      returncode: 1

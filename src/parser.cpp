@@ -54,7 +54,7 @@ private:
 
 };
 
-const std::regex parser_t::group_regex {R"(^\s*\[([_a-zA-Z]\w*)\]\s*$)"};
+const std::regex parser_t::group_regex {R"(^\s*\[([_a-zA-Z0-9@]+)\]\s*$)"};
 const std::regex parser_t::comment_regex {R"(^\s*[;\#](.*)$)"};
 const std::regex parser_t::option_regex {
     R"(^\s*([_a-zA-Z]\w*)(\[([a-zA-Z]\w*)\])?\s*=\s*(.*)$)" };

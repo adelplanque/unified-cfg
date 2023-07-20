@@ -9,6 +9,7 @@ testcases = [
   'test_get.yaml',
   'test_get2.yaml',
   'test_get_errors.yaml',
+  'test_group_name.yaml',
   'test_list.yaml',
   'test_list_empty.yaml',
   'test_list_tabulate.yaml',
