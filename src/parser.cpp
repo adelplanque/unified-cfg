@@ -54,10 +54,10 @@ private:
 
 };
 
-const std::regex parser_t::group_regex {R"(^\s*\[([_a-zA-Z0-9@]+)\]\s*$)"};
+const std::regex parser_t::group_regex {R"(^\s*\[([_a-zA-Z0-9@:\.\-]+)\]\s*$)"};
 const std::regex parser_t::comment_regex {R"(^\s*[;\#](.*)$)"};
 const std::regex parser_t::option_regex {
-    R"(^\s*([_a-zA-Z]\w*)(\[([a-zA-Z]\w*)\])?\s*=\s*(.*)$)" };
+    R"(^\s*([_a-zA-Z0-9@:\.]+)(\[([a-zA-Z]\w*)\])?\s*=\s*(.*)$)" };
 const std::regex parser_t::empty_regex {R"(^\s*$)"};
 
 void parser_t::load_file(std::shared_ptr<std::filesystem::path> filename)
