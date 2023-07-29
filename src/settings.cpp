@@ -35,10 +35,10 @@ CFG_BEGIN_NAMESPACE
 template<> bool cast_value<bool>(const std::string value)
 {
     std::string lower = boost::algorithm::to_lower_copy(value);
-    if (lower == "true") {
+    if (lower == "true" || lower == "yes") {
         return true;
     }
-    if (lower == "false") {
+    if (lower == "false" || lower == "no") {
         return false;
     }
     return boost::lexical_cast<int>(value);
