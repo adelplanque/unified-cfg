@@ -23,9 +23,11 @@ CFG_BEGIN_NAMESPACE
 /**
  * Return number of cpu cores taken from /proc/cpuinfo
  *
+ * @param logical Give number of logical cores
+ * @param min Minimal return value
  * @return Number of cpu cores
  */
-int cpu_cores();
+int cpu_cores(bool logical, int min);
 
 /**
  * Return value from /proc/meminfo

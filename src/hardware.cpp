@@ -16,25 +16,57 @@
 
 #include <fstream>
 #include <regex>
+#include <set>
 
 #include "core.h"
 #include "hardware.h"
 
 CFG_BEGIN_NAMESPACE
 
-const std::regex cpuinfo_regex {R"(^cpu cores\s+:\s+(\d+)\s*$)"};
+const std::regex cpuinfo_processor_regex {R"(^processor\s+:\s+(\d+)\s*$)"};
+const std::regex cpuinfo_physicalid_regex {R"(^physical id\s+:\s+(\d+)\s*$)"};
+const std::regex cpuinfo_coreid_regex {R"(^core id\s+:\s+(\d+)\s*$)"};
+const std::string cpuinfo_file {"/proc/cpuinfo"};
 
-int cpu_cores()
+
+int _cpu_cores(const std::string& filepath, bool logical, int min)
 {
-    std::ifstream is { "/proc/cpuinfo" };
+    std::ifstream is { filepath };
     std::string line;
+    int logical_cores = 0;
+    std::set<std::pair<int, int>> physical_cores {};
+    int processor_id = -1;
+    int physical_id = -1;
+    int core_id = -1;
     while (std::getline(is, line)) {
         std::smatch m;
-        if (std::regex_match(line, m, cpuinfo_regex)) {
-            return std::stoi(m[1]);
+        if (std::regex_match(line, m, cpuinfo_processor_regex)) {
+            if (processor_id != -1) {
+                physical_cores.emplace(physical_id, core_id);
+                physical_id = -1;
+                core_id = -1;
+            }
+            processor_id = std::stoi(m[1]);
+            logical_cores += 1;
+        } else if (std::regex_match(line, m, cpuinfo_physicalid_regex)) {
+            physical_id = std::stoi(m[1]);
+        } else if (std::regex_match(line, m, cpuinfo_coreid_regex)) {
+            core_id = std::stoi(m[1]);
         }
     }
-    return -1;
+    if (processor_id != -1) {
+        physical_cores.emplace(physical_id, core_id);
+    }
+    if (logical) {
+        return std::max(min, logical_cores);
+    } else {
+        return std::max(min, (int) physical_cores.size());
+    }
+}
+
+int cpu_cores(bool logical, int min)
+{
+    return _cpu_cores(cpuinfo_file, logical, min);
 }
 
 long int meminfo(const std::string& key)

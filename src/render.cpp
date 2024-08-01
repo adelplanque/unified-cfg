@@ -145,7 +145,9 @@ Renderer::Renderer(settings_t::ptr settings, bool recursive)
                                            jinja2::ArgInfo("script", true),
                                            jinja2::ArgInfo("ignore_error", false, false))},
             {"hardware", jinja2::ValuesMap({
-                        {"cpu_cores", jinja2::MakeCallable(cpu_cores)},
+                  {"cpu_cores", jinja2::MakeCallable(cpu_cores,
+                                                     jinja2::ArgInfo("logical", false, false),
+                                                     jinja2::ArgInfo("min", false, 1))},
                         {"meminfo", jinja2::MakeCallable(meminfo, jinja2::ArgInfo("key", true))},
                     })},
         });
